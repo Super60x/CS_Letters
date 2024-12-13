@@ -102,6 +102,10 @@ app.post('/api/process-text', validateTextInput, async (req, res) => {
         const { text, type } = req.body;
         console.log('Processing request:', { type, textLength: text.length });
 
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OpenAI API key is not configured');
+        }
+
         const response = await openaiAxios.post('/chat/completions', {
             model: "gpt-4",
             messages: [
@@ -128,23 +132,25 @@ app.post('/api/process-text', validateTextInput, async (req, res) => {
             throw new Error('Ongeldig antwoord van AI service');
         }
 
-        const processedText = response.data.choices[0].message.content;
+        const processedText = response.data.choices[0].message.content.trim();
         console.log('Successfully processed text:', { 
             outputLength: processedText.length 
         });
 
-        res.json({ 
+        return res.status(200).json({ 
             processedText,
             success: true
         });
     } catch (error) {
-        console.error('Error processing text:', error.message);
+        console.error('Error processing text:', error);
         if (error.response?.data) {
             console.error('OpenAI API error:', error.response.data);
         }
-        res.status(500).json({ 
-            error: 'Er is een fout opgetreden bij het verwerken van de tekst',
-            details: error.message,
+        
+        const errorMessage = error.response?.data?.error?.message || error.message || 'Er is een fout opgetreden bij het verwerken van de tekst';
+        
+        return res.status(500).json({ 
+            error: errorMessage,
             success: false
         });
     }

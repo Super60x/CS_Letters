@@ -106,17 +106,18 @@ function App() {
       
       console.log('Response received:', response.data);
       
-      if (response.data.processedText) {
+      if (response.data.success && response.data.processedText) {
         setOutputText(response.data.processedText);
         setSuccess('Tekst succesvol verwerkt!');
         setSnackbarOpen(true);
       } else {
-        throw new Error('Geen verwerkte tekst ontvangen van de server.');
+        throw new Error(response.data.error || 'Geen verwerkte tekst ontvangen van de server.');
       }
     } catch (err) {
       console.error('Error details:', err);
-      console.error('Response data:', err.response?.data);
-      setError(err.response?.data?.error || err.message || 'Er is een fout opgetreden bij het verwerken van de tekst.');
+      const errorMessage = err.response?.data?.error || err.message || 'Er is een fout opgetreden bij het verwerken van de tekst.';
+      console.error('Error message:', errorMessage);
+      setError(errorMessage);
       setSnackbarOpen(true);
     } finally {
       setProcessing(false);
