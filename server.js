@@ -63,6 +63,12 @@ app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'frontend/build')));
 
+// Enhanced logging middleware
+app.use((req, res, next) => {
+    console.log(`Incoming request: ${req.method} ${req.url}`);
+    next();
+});
+
 // Configure multer for file uploads
 const upload = multer({
     dest: 'uploads/',
@@ -205,40 +211,11 @@ app.post('/api/upload-file', upload.single('file'), async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
-
-        let text = '';
-        const filePath = req.file.path;
-        const fileType = req.file.originalname.toLowerCase();
-
-        // Read file content based on file type
-        if (fileType.endsWith('.txt')) {
-            text = fs.readFileSync(filePath, 'utf8');
-        } else if (fileType.endsWith('.pdf')) {
-            const pdfParse = require('pdf-parse');
-            const dataBuffer = fs.readFileSync(filePath);
-            const pdfData = await pdfParse(dataBuffer);
-            text = pdfData.text;
-        } else if (fileType.endsWith('.doc') || fileType.endsWith('.docx')) {
-            const mammoth = require('mammoth');
-            const result = await mammoth.extractRawText({ path: filePath });
-            text = result.value;
-        }
-
-        // Clean up: delete the temporary file
-        fs.unlinkSync(filePath);
-
-        if (!text.trim()) {
-            throw new Error('Could not extract text from file');
-        }
-
-        // Return the extracted text
-        res.json({ text });
+        console.log('File uploaded:', req.file);
+        res.json({ message: 'File uploaded successfully' });
     } catch (error) {
-        console.error('File upload error:', error);
-        res.status(500).json({ 
-            error: 'Error processing file upload',
-            details: error.message 
-        });
+        console.error('Error processing file upload:', error);
+        res.status(500).json({ error: 'Failed to process file upload' });
     }
 });
 
@@ -298,9 +275,10 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ 
-        error: 'Er is een fout opgetreden bij het verwerken van uw verzoek.' 
+    console.error('Error occurred:', err);
+    res.status(err.status || 500).json({
+        error: 'An internal error occurred',
+        message: err.message
     });
 });
 
