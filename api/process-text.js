@@ -4,8 +4,12 @@ const cors = require('cors');
 
 const app = express();
 
-// Enable CORS
-app.use(cors());
+// Configure CORS for Vercel deployment
+app.use(cors({
+    origin: ['https://cs-letters.vercel.app', 'http://localhost:5173'],
+    methods: ['GET', 'POST'],
+    credentials: true
+}));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -114,13 +118,24 @@ app.post('/api/process-text', validateTextInput, async (req, res) => {
             max_tokens: 3000
         });
 
+        console.log('OpenAI response received:', {
+            status: response.status,
+            hasChoices: !!response.data.choices,
+            firstChoice: !!response.data.choices?.[0]
+        });
+
         if (!response.data.choices?.[0]?.message?.content) {
             throw new Error('Ongeldig antwoord van AI service');
         }
 
-        console.log('Successfully processed text');
+        const processedText = response.data.choices[0].message.content;
+        console.log('Successfully processed text:', { 
+            outputLength: processedText.length 
+        });
+
         res.json({ 
-            processedText: response.data.choices[0].message.content 
+            processedText,
+            success: true
         });
     } catch (error) {
         console.error('Error processing text:', error.message);
@@ -129,7 +144,8 @@ app.post('/api/process-text', validateTextInput, async (req, res) => {
         }
         res.status(500).json({ 
             error: 'Er is een fout opgetreden bij het verwerken van de tekst',
-            details: error.message
+            details: error.message,
+            success: false
         });
     }
 });

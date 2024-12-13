@@ -23,7 +23,10 @@ import { Upload as UploadIcon, ContentCopy as ContentCopyIcon } from '@mui/icons
 import axios from 'axios';
 import './App.css';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+// API URL configuration for Vercel deployment
+const API_URL = import.meta.env.VITE_API_URL || 'https://cs-letters.vercel.app/api';
+
+console.log('Using API URL:', API_URL); // Debug logging
 
 const theme = createTheme({
   palette: {
@@ -92,12 +95,16 @@ function App() {
 
     setProcessing(true);
     setError('');
+    setOutputText(''); // Clear previous output
     
     try {
+      console.log('Sending request to:', `${API_URL}/process-text`);
       const response = await axios.post(`${API_URL}/process-text`, {
         text: inputText,
         type
       });
+      
+      console.log('Response received:', response.data); // Debug log
       
       if (response.data.processedText) {
         setOutputText(response.data.processedText);
@@ -107,7 +114,8 @@ function App() {
         throw new Error('Geen verwerkte tekst ontvangen van de server.');
       }
     } catch (err) {
-      console.error('Error details:', err.response?.data);
+      console.error('Error details:', err);
+      console.error('Response data:', err.response?.data);
       setError(err.response?.data?.error || err.message || 'Er is een fout opgetreden bij het verwerken van de tekst.');
       setSnackbarOpen(true);
     } finally {
