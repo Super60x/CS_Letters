@@ -1,6 +1,8 @@
 const express = require('express');
 const multer = require('multer');
+const path = require('path');
 
+// Initialize express
 const app = express();
 
 // Adjust multer configuration for serverless environment
@@ -19,12 +21,38 @@ const upload = multer({
     }
 });
 
-app.post('/upload-file', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
+// Enable CORS
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
-    // Process the uploaded file
-    res.status(200).json({ message: 'File uploaded successfully' });
+    next();
 });
 
-module.exports = app;
+// Handle file upload
+const handler = async (req, res) => {
+    try {
+        upload.single('file')(req, res, (err) => {
+            if (err) {
+                console.error('Upload error:', err);
+                return res.status(400).json({ error: err.message });
+            }
+            if (!req.file) {
+                return res.status(400).json({ error: 'No file uploaded' });
+            }
+            console.log('File uploaded successfully:', req.file.originalname);
+            res.status(200).json({ 
+                message: 'File uploaded successfully',
+                filename: req.file.originalname 
+            });
+        });
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+module.exports = handler;
