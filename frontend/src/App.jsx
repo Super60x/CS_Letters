@@ -63,7 +63,11 @@ function App() {
       setProcessing(true);
       axios.post(`${API_URL}/upload-file`, formData)
         .then(response => {
-          setInputText(response.data.text);
+          if (response.data.text) {
+            setInputText(response.data.text);
+          } else {
+            setError('Kon de tekst niet uit het bestand halen.');
+          }
         })
         .catch(err => {
           setError(err.response?.data?.error || 'Er is een fout opgetreden bij het uploaden van het bestand.');
@@ -219,7 +223,7 @@ function App() {
                 fullWidth
                 variant="contained"
                 onClick={handleSubmit}
-                disabled={processing || !inputText.trim()}
+                disabled={processing || !(inputText && inputText.trim())}
                 sx={{ py: 2 }}
               >
                 {processing ? <CircularProgress size={24} /> : 'Verwerken'}

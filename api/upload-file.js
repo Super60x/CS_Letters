@@ -35,7 +35,7 @@ app.use((req, res, next) => {
 // Handle file upload
 const handler = async (req, res) => {
     try {
-        upload.single('file')(req, res, (err) => {
+        upload.single('file')(req, res, async (err) => {
             if (err) {
                 console.error('Upload error:', err);
                 return res.status(400).json({ error: err.message });
@@ -43,10 +43,16 @@ const handler = async (req, res) => {
             if (!req.file) {
                 return res.status(400).json({ error: 'No file uploaded' });
             }
+            
+            // For now, just return the file buffer as text
+            // In a production environment, you'd want to properly parse PDF/DOC files
+            const text = req.file.buffer.toString('utf-8');
+            
             console.log('File uploaded successfully:', req.file.originalname);
             res.status(200).json({ 
                 message: 'File uploaded successfully',
-                filename: req.file.originalname 
+                filename: req.file.originalname,
+                text: text // Include the text content
             });
         });
     } catch (error) {
