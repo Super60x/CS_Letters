@@ -207,19 +207,20 @@ app.post('/api/process-text', validateTextInput, async (req, res) => {
     }
 });
 
-app.post('/api/upload-file', upload.single('file'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-        // Process the uploaded file
-        console.log('File uploaded:', req.file);
-        res.json({ message: 'File uploaded successfully' });
-    } catch (error) {
-        console.error('Error processing file upload:', error);
-        res.status(500).json({ error: 'Failed to process file upload' });
-    }
-});
+// Commented out the existing upload-file route to avoid conflicts with the serverless function
+// app.post('/api/upload-file', upload.single('file'), async (req, res) => {
+//     try {
+//         if (!req.file) {
+//             return res.status(400).json({ error: 'No file uploaded' });
+//         }
+//         // Process the uploaded file
+//         console.log('File uploaded:', req.file);
+//         res.json({ message: 'File uploaded successfully' });
+//     } catch (error) {
+//         console.error('Error processing file upload:', error);
+//         res.status(500).json({ error: 'Failed to process file upload' });
+//     }
+// });
 
 // Test endpoint for verifying prompts
 app.get('/api/test-prompts', async (req, res) => {
