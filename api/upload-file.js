@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const pdfParse = require('pdf-parse');
 
 // Initialize express
 const app = express();
@@ -44,16 +45,20 @@ const handler = async (req, res) => {
                 return res.status(400).json({ error: 'No file uploaded' });
             }
             
-            // For now, just return the file buffer as text
-            // In a production environment, you'd want to properly parse PDF/DOC files
-            const text = req.file.buffer.toString('utf-8');
-            
-            console.log('File uploaded successfully:', req.file.originalname);
-            res.status(200).json({ 
-                message: 'File uploaded successfully',
-                filename: req.file.originalname,
-                text: text // Include the text content
-            });
+            // Use pdf-parse to extract text from PDF
+            try {
+                const data = await pdfParse(req.file.buffer);
+                const text = data.text;
+                console.log('File uploaded and parsed successfully:', req.file.originalname);
+                res.status(200).json({ 
+                    message: 'File uploaded successfully',
+                    filename: req.file.originalname,
+                    text: text // Include the extracted text
+                });
+            } catch (parseError) {
+                console.error('Error parsing PDF:', parseError);
+                res.status(500).json({ error: 'Failed to parse PDF file' });
+            }
         });
     } catch (error) {
         console.error('Server error:', error);
