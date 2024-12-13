@@ -24,7 +24,7 @@ import axios from 'axios';
 import './App.css';
 
 // API URL configuration for Vercel deployment
-const API_URL = import.meta.env.VITE_API_URL || 'https://cs-letters.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://cs-letters.vercel.app';
 
 console.log('Using API URL:', API_URL); // Debug logging
 
@@ -66,7 +66,7 @@ function App() {
       formData.append('file', file);
       
       setProcessing(true);
-      axios.post(`${API_URL}/upload-file`, formData)
+      axios.post(`${API_URL}/api/upload-file`, formData)
         .then(response => {
           if (response.data.text) {
             setInputText(response.data.text);
@@ -98,8 +98,8 @@ function App() {
     setOutputText('');
     
     try {
-      console.log('Sending request to:', `${API_URL}/process-text`);
-      const response = await axios.post(`${API_URL}/process-text`, {
+      console.log('Sending request to:', `${API_URL}/api/process-text`);
+      const response = await axios.post(`${API_URL}/api/process-text`, {
         text: inputText,
         type
       });

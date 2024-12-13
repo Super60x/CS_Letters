@@ -89,6 +89,18 @@ const validateTextInput = (req, res, next) => {
     next();
 };
 
+// Validate OpenAI API key middleware
+const validateOpenAIKey = (req, res, next) => {
+    if (!process.env.OPENAI_API_KEY) {
+        console.error('OpenAI API key is not configured');
+        return res.status(500).json({
+            success: false,
+            error: 'OpenAI API key is not configured. Please check server configuration.'
+        });
+    }
+    next();
+};
+
 // Configure OpenAI API
 const openaiAxios = axios.create({
     baseURL: 'https://api.openai.com/v1',
@@ -99,14 +111,10 @@ const openaiAxios = axios.create({
 });
 
 // Process text endpoint
-app.post('/api/process-text', validateTextInput, async (req, res) => {
+app.post('/api/process-text', validateTextInput, validateOpenAIKey, async (req, res) => {
     console.log('Received request:', req.body);
     
     try {
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error('OpenAI API key is not configured');
-        }
-
         const { text, type } = req.body;
         const prompt = type === 'rewrite' ? 
             OPENAI_PROMPTS.system.rewrite(text) : 
