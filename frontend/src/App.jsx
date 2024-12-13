@@ -7,18 +7,19 @@ import {
   Typography,
   TextField,
   Button,
+  Box,
+  CircularProgress,
+  Snackbar,
+  Alert,
   Radio,
   RadioGroup,
   FormControlLabel,
   FormControl,
   FormLabel,
-  Box,
-  IconButton,
-  Snackbar,
-  Alert,
-  CircularProgress
+  IconButton
 } from '@mui/material';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { Upload as UploadIcon, ContentCopy as ContentCopyIcon } from '@mui/icons-material';
 import axios from 'axios';
 import './App.css';
 
@@ -45,14 +46,44 @@ function App() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const handleTypeChange = useCallback((event) => {
     setType(event.target.value);
   }, []);
 
-  const handleSnackbarClose = useCallback(() => {
-    setSnackbarOpen(false);
+  const handleFileUpload = useCallback((event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Bestand is te groot. Maximum grootte is 5MB.');
+        setSnackbarOpen(true);
+        return;
+      }
+      setSelectedFile(file);
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      setProcessing(true);
+      axios.post(`${API_URL}/upload-file`, formData)
+        .then(response => {
+          if (response.data.text) {
+            setInputText(response.data.text);
+            setSuccess('Bestand succesvol geüpload en verwerkt.');
+            setSnackbarOpen(true);
+          } else {
+            throw new Error('Kon de tekst niet uit het bestand halen.');
+          }
+        })
+        .catch(err => {
+          setError(err.response?.data?.error || err.message || 'Er is een fout opgetreden bij het uploaden van het bestand.');
+          setSnackbarOpen(true);
+        })
+        .finally(() => {
+          setProcessing(false);
+        });
+    }
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -106,17 +137,71 @@ function App() {
       });
   }, [outputText]);
 
+  const handleSnackbarClose = useCallback(() => {
+    setSnackbarOpen(false);
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    window.location.reload();
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 4 }}>
+          <Typography variant="h4" component="h1">
+            Klachtenbrief Verwerker
+          </Typography>
+          <IconButton 
+            onClick={handleRefresh}
+            color="primary"
+            size="large"
+            sx={{ 
+              border: '1px solid',
+              borderColor: 'primary.main',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'primary.main',
+                color: 'white'
+              }
+            }}
+          >
+            <RefreshIcon fontSize="medium" />
+          </IconButton>
+        </Box>
+
         <Grid container spacing={3}>
           {/* Left Column - Input */}
           <Grid item xs={12} md={4}>
             <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="h6">
-                  Input
-                </Typography>
+              <Typography variant="h6" gutterBottom>
+                Invoer
+              </Typography>
+              
+              <Box sx={{ mb: 3 }}>
+                <input
+                  accept=".doc,.docx,.pdf"
+                  style={{ display: 'none' }}
+                  id="file-upload"
+                  type="file"
+                  onChange={handleFileUpload}
+                />
+                <label htmlFor="file-upload">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    startIcon={<UploadIcon />}
+                    fullWidth
+                    disabled={processing}
+                  >
+                    Document Uploaden
+                  </Button>
+                </label>
+                {selectedFile && (
+                  <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                    Geselecteerd bestand: {selectedFile.name}
+                  </Typography>
+                )}
               </Box>
 
               <TextField
@@ -165,9 +250,9 @@ function App() {
               </Box>
 
               <Button
-                fullWidth
                 variant="contained"
                 color="primary"
+                fullWidth
                 onClick={handleSubmit}
                 disabled={processing || !inputText.trim()}
                 sx={{ mt: 2 }}
