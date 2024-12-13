@@ -7,7 +7,12 @@ const app = express();
 
 // Configure CORS for Vercel deployment
 app.use(cors({
-    origin: ['https://cs-letters.vercel.app', 'http://localhost:5173'],
+    origin: [
+        'https://cs-letters.vercel.app',
+        'https://cs-letters-git-main.vercel.app',
+        'https://cs-letters-*.vercel.app',
+        'http://localhost:5173'  // for local development
+    ],
     methods: ['GET', 'POST'],
     credentials: true
 }));

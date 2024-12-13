@@ -9,7 +9,7 @@ const fs = require('fs');
 
 // Initialize Express app
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3001;
 
 // Validate required environment variables
 if (!process.env.OPENAI_API_KEY) {

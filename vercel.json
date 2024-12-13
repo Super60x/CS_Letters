@@ -11,15 +11,21 @@
   },
   "routes": [
     {
+      "src": "/api/process-text",
+      "methods": ["POST"],
+      "dest": "/api/process-text.js"
+    },
+    {
+      "src": "/api/upload-file",
+      "methods": ["POST"],
+      "dest": "/api/upload-file.js"
+    },
+    {
       "handle": "filesystem"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/frontend/dist/$1"
     }
   ]
 }
