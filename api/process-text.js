@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 
+// Initialize express
 const app = express();
 
 // Configure CORS for Vercel deployment
@@ -39,121 +40,103 @@ const OPENAI_PROMPTS = {
              ${text}`,
         response: (text) => 
             `Schrijf een professioneel antwoord op deze klachtenbrief van een klant. Instructies:
-            - Begin met het tonen van begrip voor de situatie en erken de bezorgdheid van de klant.
-            - Behandel elk genoemd punt serieus, zelfs als er meerdere klachten in de brief staan. Zorg ervoor dat elk punt afzonderlijk wordt behandeld en beantwoord.
-            - Structureer het antwoord duidelijk met achtergrondinformatie/feiten, de oorzaak van het probleem, en de maatregelen die genomen zijn of zullen worden om herhaling te voorkomen.
-            
-            Belangrijk:
-            - Vermijd absoluut toezeggingen over compensatie of herstel of verandering in interne processen. Maak geen beloften die niet bevestigd kunnen worden. Maak geen beloften over processen en interne gesprekken.
-            - Geef aan dat er naar een oplossing wordt gezocht, maar vermijd vage uitspraken zoals "dit zal de volgende keer opgelost zijn". Geef geen commitment.
-            - Vermijd het suggereren dat werkwijzen, regels, of processen worden aangepast zonder een specifiek plan of bewijs van verandering.
-            - Gebruik een empathische, maar professionele schrijfstijl. Zorg ervoor dat het antwoord oprecht en persoonlijk aanvoelt en geen automatische afhandeling of robotachtige toon bevat.
-            - Sluit af met een constructieve toon die aangeeft dat de situatie serieus is genomen. Ga niet in detail over welke stappen.
-            - Gebruik een empathische maar professionele schrijfstijl, zonder te veel emotionele betuigingen.
-            - Voeg een passende aanhef toe, afhankelijk van de relatie en het onderwerp.
-            - Schrijf vanuit de Wij-vorm.
-            - Eindig altijd de brief met: "Met Vriendelijke Groeten."
-            
-            Vermijd Zinnen:
-            - Ik hoop dat we ondanks deze onaangename ervaring de kans krijgen om u in de toekomst opnieuw van dienst te zijn.
-            - We zullen er alles aan doen om ervoor te zorgen dat uw volgende ervaring met ons een positieve zal zijn.             
+             - Begin met het tonen van begrip voor de situatie en erken de bezorgdheid van de klant.
+             - Behandel elk genoemd punt serieus, zelfverzekerd en professioneel.
+             - Gebruik een empathische maar zakelijke toon.
+             - Bied waar mogelijk concrete oplossingen aan.
+             - Vermijd het maken van beloftes die niet nagekomen kunnen worden.
+             - Eindig met een positieve noot en een duidelijke volgende stap.
+             - Gebruik correcte spelling en grammatica.
+             - Maak de tekst beknopt maar volledig.
+             - Geen informatie uitvinden. Als de benodigde informatie ontbreekt, plaats dan [xx] voor de gegevens die door de gebruiker moeten worden aangevuld.
+             - Eindig altijd de brief met: "Met Vriendelijke Groeten."
              
-             De klachtenbrief:
+             De brief:
              ${text}`
     }
 };
-
-// Axios instance for OpenAI
-const openaiAxios = axios.create({
-    baseURL: 'https://api.openai.com/v1',
-    headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY.trim()}`,
-        'Content-Type': 'application/json'
-    }
-});
 
 // Input validation middleware
 const validateTextInput = (req, res, next) => {
     const { text, type } = req.body;
 
-    if (!text || typeof text !== 'string') {
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
         return res.status(400).json({ 
-            error: 'Tekst is verplicht en moet een string zijn.' 
+            error: 'Tekst is verplicht en mag niet leeg zijn.',
+            success: false
         });
     }
 
-    if (text.length > 7000) {
+    if (text.length > 4000) {
         return res.status(400).json({ 
-            error: 'Tekst mag niet langer zijn dan 7000 karakters.' 
+            error: 'Tekst is te lang. Maximum lengte is 4000 karakters.',
+            success: false
         });
     }
 
     if (!type || !['rewrite', 'response'].includes(type)) {
         return res.status(400).json({ 
-            error: 'Type moet "rewrite" of "response" zijn.' 
+            error: 'Type moet "rewrite" of "response" zijn.',
+            success: false
         });
     }
     
     next();
 };
 
-app.post('/api/process-text', validateTextInput, async (req, res) => {
-    try {
-        const { text, type } = req.body;
-        console.log('Processing request:', { type, textLength: text.length });
+// Configure OpenAI API
+const openaiAxios = axios.create({
+    baseURL: 'https://api.openai.com/v1',
+    headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+    }
+});
 
+// Process text endpoint
+app.post('/api/process-text', validateTextInput, async (req, res) => {
+    console.log('Received request:', req.body);
+    
+    try {
         if (!process.env.OPENAI_API_KEY) {
             throw new Error('OpenAI API key is not configured');
         }
 
+        const { text, type } = req.body;
+        const prompt = type === 'rewrite' ? 
+            OPENAI_PROMPTS.system.rewrite(text) : 
+            OPENAI_PROMPTS.system.response(text);
+
         const response = await openaiAxios.post('/chat/completions', {
             model: "gpt-4",
             messages: [
-                { 
-                    role: "system", 
-                    content: OPENAI_PROMPTS.system.base
-                },
-                { 
-                    role: "user", 
-                    content: OPENAI_PROMPTS.system[type](text)
-                }
+                { role: "system", content: OPENAI_PROMPTS.system.base },
+                { role: "user", content: prompt }
             ],
-            temperature: 0.5,
-            max_tokens: 3000
+            temperature: 0.7,
+            max_tokens: 2000
         });
 
-        console.log('OpenAI response received:', {
-            status: response.status,
-            hasChoices: !!response.data.choices,
-            firstChoice: !!response.data.choices?.[0]
-        });
-
-        if (!response.data.choices?.[0]?.message?.content) {
-            throw new Error('Ongeldig antwoord van AI service');
+        console.log('OpenAI response received');
+        
+        if (response.data.choices && response.data.choices[0]) {
+            const processedText = response.data.choices[0].message.content;
+            console.log('Processed text:', processedText.substring(0, 100) + '...');
+            res.json({ 
+                success: true, 
+                processedText 
+            });
+        } else {
+            throw new Error('Invalid response from OpenAI API');
         }
-
-        const processedText = response.data.choices[0].message.content.trim();
-        console.log('Successfully processed text:', { 
-            outputLength: processedText.length 
-        });
-
-        return res.status(200).json({ 
-            processedText,
-            success: true
-        });
     } catch (error) {
         console.error('Error processing text:', error);
-        if (error.response?.data) {
-            console.error('OpenAI API error:', error.response.data);
-        }
-        
-        const errorMessage = error.response?.data?.error?.message || error.message || 'Er is een fout opgetreden bij het verwerken van de tekst';
-        
-        return res.status(500).json({ 
-            error: errorMessage,
-            success: false
+        res.status(500).json({
+            success: false,
+            error: error.response?.data?.error || error.message || 'Error processing text'
         });
     }
 });
 
+// Export the Express API
 module.exports = app;

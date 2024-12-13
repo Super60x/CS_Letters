@@ -166,61 +166,8 @@ const OPENAI_PROMPTS = {
 };
 
 // Routes
-app.post('/api/process-text', validateTextInput, async (req, res) => {
-    try {
-        const { text, type } = req.body;
-        console.log('Processing request:', { type, textLength: text.length });
-
-        const response = await openaiAxios.post('/chat/completions', {
-            model: "gpt-4",
-            messages: [
-                { 
-                    role: "system", 
-                    content: OPENAI_PROMPTS.system.base
-                },
-                { 
-                    role: "user", 
-                    content: OPENAI_PROMPTS.system[type](text)
-                }
-            ],
-            temperature: 0.5,
-            max_tokens: 3000
-        });
-
-        if (!response.data.choices?.[0]?.message?.content) {
-            throw new Error('Ongeldig antwoord van AI service');
-        }
-
-        console.log('Successfully processed text');
-        res.json({ 
-            processedText: response.data.choices[0].message.content 
-        });
-    } catch (error) {
-        console.error('Error processing text:', error.message);
-        if (error.response?.data) {
-            console.error('OpenAI API error:', error.response.data);
-        }
-        res.status(500).json({ 
-            error: 'Er is een fout opgetreden bij het verwerken van de tekst',
-            details: error.message
-        });
-    }
-});
-
-// Commented out the existing upload-file route to avoid conflicts with the serverless function
-// app.post('/api/upload-file', upload.single('file'), async (req, res) => {
-//     try {
-//         if (!req.file) {
-//             return res.status(400).json({ error: 'No file uploaded' });
-//         }
-//         // Process the uploaded file
-//         console.log('File uploaded:', req.file);
-//         res.json({ message: 'File uploaded successfully' });
-//     } catch (error) {
-//         console.error('Error processing file upload:', error);
-//         res.status(500).json({ error: 'Failed to process file upload' });
-//     }
-// });
+const processTextRouter = require('./api/process-text');
+app.use('/', processTextRouter);
 
 // Test endpoint for verifying prompts
 app.get('/api/test-prompts', async (req, res) => {
@@ -287,6 +234,8 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Server is running on port ${port}`);
+    console.log('API endpoints:');
+    console.log('- POST /api/process-text');
     testOpenAIConnection();
 });
