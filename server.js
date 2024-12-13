@@ -166,46 +166,47 @@ const OPENAI_PROMPTS = {
 };
 
 // Routes
-app.post('/api/process-text', validateTextInput, async (req, res) => {
-    try {
-        const { text, type } = req.body;
-        console.log('Processing request:', { type, textLength: text.length });
+// Commented out the existing process-text route to avoid conflicts with the serverless function
+// app.post('/api/process-text', validateTextInput, async (req, res) => {
+//     try {
+//         const { text, type } = req.body;
+//         console.log('Processing request:', { type, textLength: text.length });
 
-        const response = await openaiAxios.post('/chat/completions', {
-            model: "gpt-4",
-            messages: [
-                { 
-                    role: "system", 
-                    content: OPENAI_PROMPTS.system.base
-                },
-                { 
-                    role: "user", 
-                    content: OPENAI_PROMPTS.system[type](text)
-                }
-            ],
-            temperature: 0.5,
-            max_tokens: 3000
-        });
+//         const response = await openaiAxios.post('/chat/completions', {
+//             model: "gpt-4",
+//             messages: [
+//                 { 
+//                     role: "system", 
+//                     content: OPENAI_PROMPTS.system.base
+//                 },
+//                 { 
+//                     role: "user", 
+//                     content: OPENAI_PROMPTS.system[type](text)
+//                 }
+//             ],
+//             temperature: 0.5,
+//             max_tokens: 3000
+//         });
 
-        if (!response.data.choices?.[0]?.message?.content) {
-            throw new Error('Ongeldig antwoord van AI service');
-        }
+//         if (!response.data.choices?.[0]?.message?.content) {
+//             throw new Error('Ongeldig antwoord van AI service');
+//         }
 
-        console.log('Successfully processed text');
-        res.json({ 
-            processedText: response.data.choices[0].message.content 
-        });
-    } catch (error) {
-        console.error('Error processing text:', error.message);
-        if (error.response?.data) {
-            console.error('OpenAI API error:', error.response.data);
-        }
-        res.status(500).json({ 
-            error: 'Er is een fout opgetreden bij het verwerken van de tekst',
-            details: error.message
-        });
-    }
-});
+//         console.log('Successfully processed text');
+//         res.json({ 
+//             processedText: response.data.choices[0].message.content 
+//         });
+//     } catch (error) {
+//         console.error('Error processing text:', error.message);
+//         if (error.response?.data) {
+//             console.error('OpenAI API error:', error.response.data);
+//         }
+//         res.status(500).json({ 
+//             error: 'Er is een fout opgetreden bij het verwerken van de tekst',
+//             details: error.message
+//         });
+//     }
+// });
 
 // Commented out the existing upload-file route to avoid conflicts with the serverless function
 // app.post('/api/upload-file', upload.single('file'), async (req, res) => {
