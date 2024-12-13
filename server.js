@@ -69,18 +69,19 @@ app.use((req, res, next) => {
     next();
 });
 
-// Configure multer for file uploads
+// Adjust multer configuration for serverless environment
 const upload = multer({
-    dest: 'uploads/',
-    limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
-    },
-    fileFilter: function (req, file, cb) {
-        // Accept only text files
-        if (!file.originalname.match(/\.(txt|doc|docx|pdf)$/)) {
-            return cb(new Error('Only text, doc, docx, and pdf files are allowed!'), false);
+    storage: multer.memoryStorage(), // Use memory storage to handle file uploads in serverless
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /pdf|doc|docx/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (extname && mimetype) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only PDF, DOC, and DOCX files are allowed'));
         }
-        cb(null, true);
     }
 });
 
@@ -211,6 +212,7 @@ app.post('/api/upload-file', upload.single('file'), async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
+        // Process the uploaded file
         console.log('File uploaded:', req.file);
         res.json({ message: 'File uploaded successfully' });
     } catch (error) {
