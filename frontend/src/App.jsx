@@ -149,7 +149,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 4 }}>
+        <Box component="div" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 4 }}>
           <Typography variant="h4" component="h1">
             Klachtenbrief Verwerker
           </Typography>
@@ -171,15 +171,15 @@ function App() {
           </IconButton>
         </Box>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} component="div">
           {/* Left Column - Input */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={4} component="div">
             <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
               <Typography variant="h6" gutterBottom>
                 Invoer
               </Typography>
               
-              <Box sx={{ mb: 3 }}>
+              <Box component="div" sx={{ mb: 3 }}>
                 <input
                   accept=".doc,.docx,.pdf"
                   style={{ display: 'none' }}
@@ -220,13 +220,13 @@ function App() {
           </Grid>
 
           {/* Middle Column - Type Selection */}
-          <Grid item xs={12} md={2}>
+          <Grid item xs={12} md={2} component="div">
             <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
               <Typography variant="h6" gutterBottom align="center">
                 Kies een optie
               </Typography>
               
-              <Box sx={{ mb: 3 }}>
+              <Box component="div" sx={{ mb: 3 }}>
                 <FormControl component="fieldset">
                   <FormLabel component="legend">Verwerkingsoptie</FormLabel>
                   <RadioGroup
@@ -268,9 +268,9 @@ function App() {
           </Grid>
 
           {/* Right Column - Output */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} component="div">
             <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Box component="div" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
                   Resultaat
                 </Typography>
@@ -290,7 +290,7 @@ function App() {
                 multiline
                 rows={20}
                 variant="outlined"
-                value={outputText}
+                value={outputText || ''}
                 disabled
               />
             </Paper>
