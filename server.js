@@ -6,6 +6,8 @@ const axios = require('axios');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
+const mammoth = require('mammoth');
+const pdfParse = require('pdf-parse');
 
 // Initialize Express app
 const app = express();
@@ -182,6 +184,39 @@ const OPENAI_PROMPTS = {
 // Routes
 const processTextRouter = require('./api/process-text');
 app.use('/', processTextRouter);
+
+// File upload endpoint
+app.post('/api/upload-file', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        let text = '';
+        const fileBuffer = req.file.buffer;
+        const fileType = path.extname(req.file.originalname).toLowerCase();
+
+        // Extract text based on file type
+        if (fileType === '.pdf') {
+            const pdfData = await pdfParse(fileBuffer);
+            text = pdfData.text;
+        } else if (fileType === '.docx') {
+            const result = await mammoth.extractRawText({ buffer: fileBuffer });
+            text = result.value;
+        } else if (fileType === '.doc') {
+            return res.status(400).json({ error: 'DOC files are not supported. Please convert to DOCX.' });
+        }
+
+        if (!text) {
+            return res.status(400).json({ error: 'Could not extract text from file' });
+        }
+
+        res.json({ text });
+    } catch (error) {
+        console.error('File upload error:', error);
+        res.status(500).json({ error: 'Error processing file' });
+    }
+});
 
 // Test endpoint for verifying prompts
 app.get('/api/test-prompts', async (req, res) => {
