@@ -14,20 +14,24 @@ const port = process.env.PORT || 3001;
 // Validate required environment variables
 if (!process.env.OPENAI_API_KEY) {
     console.error('Error: OPENAI_API_KEY is required but not set');
-    process.exit(1);
+    console.log('Server will start but OpenAI features will be disabled');
 }
 
 // Configure axios for OpenAI
-const openaiAxios = axios.create({
+const openaiAxios = process.env.OPENAI_API_KEY ? axios.create({
     baseURL: 'https://api.openai.com/v1',
     headers: {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY.trim()}`,
         'Content-Type': 'application/json'
     }
-});
+}) : null;
 
 // Test OpenAI connection
 const testOpenAIConnection = async () => {
+    if (!openaiAxios) {
+        console.log('Skipping OpenAI connection test - API key not configured');
+        return;
+    }
     try {
         console.log('Testing OpenAI connection with model: gpt-4');
         const response = await openaiAxios.post('/chat/completions', {

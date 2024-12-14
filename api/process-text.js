@@ -111,10 +111,16 @@ const openaiAxios = axios.create({
 });
 
 // Process text endpoint
-app.post('/api/process-text', validateTextInput, validateOpenAIKey, async (req, res) => {
-    console.log('Received request:', req.body);
-    
+app.post('/api/process-text', validateTextInput, async (req, res) => {
     try {
+        if (!openaiAxios) {
+            return res.status(503).json({
+                error: 'Service Unavailable',
+                message: 'OpenAI API is not configured. Please set OPENAI_API_KEY environment variable.'
+            });
+        }
+        console.log('Received request:', req.body);
+        
         const { text, type } = req.body;
         const prompt = type === 'rewrite' ? 
             OPENAI_PROMPTS.system.rewrite(text) : 
