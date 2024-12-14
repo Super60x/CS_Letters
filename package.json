@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "install-frontend": "cd frontend && npm install",
-    "build-frontend": "cd frontend && npx vite build",
+    "install-frontend": "cd frontend && npm install --production=false",
+    "build-frontend": "cd frontend && npm run build",
     "build": "npm install && npm run install-frontend && npm run build-frontend",
     "vercel-build": "npm run build"
   },
