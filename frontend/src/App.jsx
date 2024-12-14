@@ -23,10 +23,10 @@ import { Upload as UploadIcon, ContentCopy as ContentCopyIcon } from '@mui/icons
 import axios from 'axios';
 import './App.css';
 
-// API URL configuration for Vercel deployment
-const API_URL = import.meta.env.VITE_API_URL || 'https://cs-letters.vercel.app';
+// API URL configuration
+const API_URL = ''; // Empty string for same-origin requests
 
-console.log('Using API URL:', API_URL); // Debug logging
+console.log('Using relative API paths'); // Debug logging
 
 const theme = createTheme({
   palette: {
