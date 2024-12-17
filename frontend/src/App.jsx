@@ -302,25 +302,16 @@ function App() {
               <TextField
                 fullWidth
                 multiline
-                rows={10}
+                rows={18}
                 value={outputText}
                 onChange={(e) => setOutputText(e.target.value)}
                 variant="outlined"
+                placeholder="Hier verschijnt de verwerkte tekst..."
                 disabled={processing}
                 sx={{ 
-                  mb: 3,
-                  '& .MuiInputBase-input': {
-                    color: 'black',
-                  },
-                  '& .MuiOutlinedInput-root': {
-                    '&.Mui-disabled': {
-                      '& > input': {
-                        color: 'black',
-                      },
-                      '& > textarea': {
-                        color: 'black',
-                      }
-                    }
+                  mb: 2,
+                  '& .MuiInputBase-root': {
+                    color: 'black'
                   }
                 }}
               />

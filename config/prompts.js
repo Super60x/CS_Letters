@@ -24,6 +24,8 @@ const OPENAI_PROMPTS = {
              - Maak de tekst beknopt maar volledig.
              - Geen informatie uitvinden. Als de benodigde informatie ontbreekt, plaats dan [xx] voor de gegevens die door de gebruiker moeten worden aangevuld.
              - Eindig altijd de brief enkel met: "Met Vriendelijke Groeten." Vermeld geen naam.
+             - Neem altijd de aanvullende informatie op, zonder dat de gebruiker "Voeg Toe" hoeft te vermelden.
+             - Geef geen oplossingen of aanbevelingen.
              
              De brief:
              ${text}`,
