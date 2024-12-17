@@ -8,7 +8,7 @@ const OPENAI_PROMPTS = {
             `Herschrijf deze klachtenbrief of bericht professioneel en duidelijk.
              
              BELANGRIJKE CONTEXT (MOET VERWERKT WORDEN IN DE BRIEF):
-             ${additionalInfo ? additionalInfo : 'Geen aanvullende informatie beschikbaar.'}
+             ${additionalInfo ? 'Voeg Toe: ' + additionalInfo : 'Geen aanvullende informatie beschikbaar.'}
              
              Instructies:
              - VERWERK DE BOVENSTAANDE CONTEXT ACTIEF IN DE BRIEF WAAR RELEVANT. Geef geen toezeggingen of vind nieuwe processed uit.
@@ -33,7 +33,7 @@ const OPENAI_PROMPTS = {
             `Schrijf een professioneel antwoord op deze klachtenbrief van een klant.
              
              BELANGRIJKE CONTEXT (MOET VERWERKT WORDEN IN HET ANTWOORD):
-             ${additionalInfo ? additionalInfo : 'Geen aanvullende informatie beschikbaar.'}
+             ${additionalInfo ? 'Voeg Toe: ' + additionalInfo : 'Geen aanvullende informatie beschikbaar.'}
              
              Instructies:
              - VERWERK DE BOVENSTAANDE CONTEXT ACTIEF IN HET ANTWOORD WAAR RELEVANT
@@ -55,7 +55,7 @@ const OPENAI_PROMPTS = {
              Vermijd Zinnen:
              - Ik hoop dat we ondanks deze onaangename ervaring de kans krijgen om u in de toekomst opnieuw van dienst te zijn.
              - We zullen er alles aan doen om ervoor te zorgen dat uw volgende ervaring met ons een positieve zal zijn.             
-             
+             - Hoewel we geen concrete beloftes of compensaties kunnen doen,...
              De brief:
              ${text}`
     }
