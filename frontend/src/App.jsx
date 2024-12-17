@@ -300,12 +300,29 @@ function App() {
               </Box>
               
               <TextField
-                fullWidth
                 multiline
                 rows={20}
+                fullWidth
                 variant="outlined"
-                value={outputText || ''}
-                disabled
+                value={outputText}
+                onChange={(e) => setOutputText(e.target.value)}
+                disabled={processing}
+                sx={{ 
+                  mb: 3,
+                  '& .MuiInputBase-input': {
+                    color: 'black',
+                  },
+                  '& .MuiOutlinedInput-root': {
+                    '&.Mui-disabled': {
+                      '& > input': {
+                        color: 'black',
+                      },
+                      '& > textarea': {
+                        color: 'black',
+                      }
+                    }
+                  }
+                }}
               />
             </Paper>
           </Grid>

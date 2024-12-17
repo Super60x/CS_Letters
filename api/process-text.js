@@ -27,11 +27,17 @@ const OPENAI_PROMPTS = {
              "Je communiceert altijd beleefd, empathisch en oplossingsgericht. " +
              "Je gebruikt een professionele maar toegankelijke schrijfstijl.",
         rewrite: (text, additionalInfo) => 
-            `Herschrijf deze klachtenbrief of bericht professioneel en duidelijk. Instructies:
+            `Herschrijf deze klachtenbrief of bericht professioneel en duidelijk. 
+             
+             BELANGRIJKE CONTEXT (MOET VERWERKT WORDEN IN DE BRIEF):
+             ${additionalInfo ? additionalInfo : 'Geen aanvullende informatie beschikbaar.'}
+             
+             Instructies:
+             - VERWERK DE BOVENSTAANDE CONTEXT ACTIEF IN DE BRIEF WAAR RELEVANT
              - Behoud de kernboodschap en belangrijke feiten.
              - Verbeter de toon naar professioneel en respectvol.
              - Structureer de brief logisch met een inleiding, kern en afsluiting.
-             - Zorg voor een duidelijke structuur: begin met achtergrondinformatie/feiten, geef de oorzaak van het probleem en beschrijf de getroffen maatregelen om herhaling te voorkomen.
+             - Zorg voor een duidelijke structuur: begin met achtergrondinformatie/feiten.
              - Behandel elke klacht afzonderlijk in de brief; een brief kan meerdere klachten bevatten, en elk punt moet specifiek en duidelijk worden beantwoord.
              - Gebruik geen toezeggingen over compensatie of herstel. Maak geen beloften die niet bevestigd kunnen worden.
              - Vermijd het suggereren dat werkwijzen of regels worden aangepast of gesprekken worden gehouden zonder concrete details of bewijs.
@@ -40,12 +46,17 @@ const OPENAI_PROMPTS = {
              - Maak de tekst beknopt maar volledig.
              - Geen informatie uitvinden. Als de benodigde informatie ontbreekt, plaats dan [xx] voor de gegevens die door de gebruiker moeten worden aangevuld.
              - Eindig altijd de brief met: "Met Vriendelijke Groeten."
-             ${additionalInfo ? `\n\nAanvullende informatie om rekening mee te houden:\n${additionalInfo}` : ''}
              
              De brief:
              ${text}`,
         response: (text, additionalInfo) => 
-            `Schrijf een professioneel antwoord op deze klachtenbrief van een klant. Instructies:
+            `Schrijf een professioneel antwoord op deze klachtenbrief van een klant.
+             
+             BELANGRIJKE CONTEXT (MOET VERWERKT WORDEN IN HET ANTWOORD):
+             ${additionalInfo ? additionalInfo : 'Geen aanvullende informatie beschikbaar.'}
+             
+             Instructies:
+             - VERWERK DE BOVENSTAANDE CONTEXT ACTIEF IN HET ANTWOORD WAAR RELEVANT
              - Begin met het tonen van begrip voor de situatie en erken de bezorgdheid van de klant.
              - Behandel elk genoemd punt serieus, zelfverzekerd en professioneel.
              - Gebruik een empathische maar zakelijke toon.
@@ -55,8 +66,7 @@ const OPENAI_PROMPTS = {
              - Gebruik correcte spelling en grammatica.
              - Maak de tekst beknopt maar volledig.
              - Geen informatie uitvinden. Als de benodigde informatie ontbreekt, plaats dan [xx] voor de gegevens die door de gebruiker moeten worden aangevuld.
-             - Eindig altijd de brief met: "Met Vriendelijke Groeten."
-             ${additionalInfo ? `\n\nAanvullende informatie om rekening mee te houden:\n${additionalInfo}` : ''}
+             - Eindig Enkele met: "Met Vriendelijke Groeten."
              
              De brief:
              ${text}`
