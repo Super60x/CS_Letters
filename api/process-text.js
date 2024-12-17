@@ -1,77 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const OPENAI_PROMPTS = require('../config/prompts');
 
 // Initialize express
 const app = express();
 
-// Configure CORS for Vercel deployment
-app.use(cors({
-    origin: [
-        'https://cs-letters.vercel.app',
-        'https://cs-letters-git-main.vercel.app',
-        'https://cs-letters-*.vercel.app',
-        'http://localhost:5173'  // for local development
-    ],
-    methods: ['GET', 'POST'],
-    credentials: true
-}));
-
 // Middleware to parse JSON bodies
 app.use(express.json());
-
-// OpenAI Prompts Configuration
-const OPENAI_PROMPTS = {
-    system: {
-        base: "Je bent een professionele klantenservice medewerker die expert is in het behandelen van klachtenbrieven in het Nederlands. " +
-             "Je communiceert altijd beleefd, empathisch en oplossingsgericht. " +
-             "Je gebruikt een professionele maar toegankelijke schrijfstijl.",
-        rewrite: (text, additionalInfo) => 
-            `Herschrijf deze klachtenbrief of bericht professioneel en duidelijk. 
-             
-             BELANGRIJKE CONTEXT (MOET VERWERKT WORDEN IN DE BRIEF):
-             ${additionalInfo ? additionalInfo : 'Geen aanvullende informatie beschikbaar.'}
-             
-             Instructies:
-             - VERWERK DE BOVENSTAANDE CONTEXT ACTIEF IN DE BRIEF WAAR RELEVANT
-             - Behoud de kernboodschap en belangrijke feiten.
-             - Verbeter de toon naar professioneel en respectvol.
-             - Structureer de brief logisch met een inleiding, kern en afsluiting.
-             - Zorg voor een duidelijke structuur: begin met achtergrondinformatie/feiten.
-             - Behandel elke klacht afzonderlijk in de brief; een brief kan meerdere klachten bevatten, en elk punt moet specifiek en duidelijk worden beantwoord.
-             - Gebruik geen toezeggingen over compensatie of herstel. Maak geen beloften die niet bevestigd kunnen worden.
-             - Vermijd het suggereren dat werkwijzen of regels worden aangepast of gesprekken worden gehouden zonder concrete details of bewijs.
-             - Gebruik geen automatische of onpersoonlijke toon. De brief moet oprecht, empathisch en betrokken overkomen.
-             - Gebruik correcte spelling en grammatica.
-             - Maak de tekst beknopt maar volledig.
-             - Geen informatie uitvinden. Als de benodigde informatie ontbreekt, plaats dan [xx] voor de gegevens die door de gebruiker moeten worden aangevuld.
-             - Eindig altijd de brief met: "Met Vriendelijke Groeten."
-             
-             De brief:
-             ${text}`,
-        response: (text, additionalInfo) => 
-            `Schrijf een professioneel antwoord op deze klachtenbrief van een klant.
-             
-             BELANGRIJKE CONTEXT (MOET VERWERKT WORDEN IN HET ANTWOORD):
-             ${additionalInfo ? additionalInfo : 'Geen aanvullende informatie beschikbaar.'}
-             
-             Instructies:
-             - VERWERK DE BOVENSTAANDE CONTEXT ACTIEF IN HET ANTWOORD WAAR RELEVANT
-             - Begin met het tonen van begrip voor de situatie en erken de bezorgdheid van de klant.
-             - Behandel elk genoemd punt serieus, zelfverzekerd en professioneel.
-             - Gebruik een empathische maar zakelijke toon.
-             - Bied waar mogelijk concrete oplossingen aan.
-             - Vermijd het maken van beloftes die niet nagekomen kunnen worden.
-             - Eindig met een positieve noot en een duidelijke volgende stap.
-             - Gebruik correcte spelling en grammatica.
-             - Maak de tekst beknopt maar volledig.
-             - Geen informatie uitvinden. Als de benodigde informatie ontbreekt, plaats dan [xx] voor de gegevens die door de gebruiker moeten worden aangevuld.
-             - Eindig Enkele met: "Met Vriendelijke Groeten."
-             
-             De brief:
-             ${text}`
-    }
-};
 
 // Input validation middleware
 const validateTextInput = (req, res, next) => {
