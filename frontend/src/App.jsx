@@ -208,12 +208,12 @@ function App() {
               </Box>
 
               <TextField
-                multiline
-                rows={8}
                 fullWidth
-                variant="outlined"
+                multiline
+                rows={10}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                variant="outlined"
                 placeholder="Voer hier de klachtenbrief in"
                 disabled={processing}
                 sx={{ mb: 3 }}
@@ -300,12 +300,12 @@ function App() {
               </Box>
               
               <TextField
-                multiline
-                rows={20}
                 fullWidth
-                variant="outlined"
+                multiline
+                rows={10}
                 value={outputText}
                 onChange={(e) => setOutputText(e.target.value)}
+                variant="outlined"
                 disabled={processing}
                 sx={{ 
                   mb: 3,

@@ -71,10 +71,10 @@ app.post('/api/process-text', validateTextInput, async (req, res) => {
         
         const { text, type, additionalInfo } = req.body;
         const prompt = type === 'rewrite' ? 
-            OPENAI_PROMPTS.system.rewrite(text, additionalInfo) : 
-            OPENAI_PROMPTS.system.response(text, additionalInfo);
+            OPENAI_PROMPTS.system.rewrite(text, additionalInfo || '') : 
+            OPENAI_PROMPTS.system.response(text, additionalInfo || '');
 
-        console.log('Using prompt with additional info:', additionalInfo);
+        console.log('Using prompt with additional info:', additionalInfo || 'No additional info provided');
 
         const response = await openaiAxios.post('/chat/completions', {
             model: "gpt-4",
