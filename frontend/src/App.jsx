@@ -43,6 +43,7 @@ function App() {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [type, setType] = useState('rewrite');
+  const [additionalInfo, setAdditionalInfo] = useState('');
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -101,7 +102,8 @@ function App() {
       console.log('Sending request to:', `${API_URL}/api/process-text`);
       const response = await axios.post(`${API_URL}/api/process-text`, {
         text: inputText,
-        type
+        type,
+        additionalInfo: additionalInfo.trim()
       });
       
       console.log('Response received:', response.data);
@@ -122,7 +124,7 @@ function App() {
     } finally {
       setProcessing(false);
     }
-  }, [inputText, type]);
+  }, [inputText, type, additionalInfo]);
 
   const copyToClipboard = useCallback(() => {
     if (!outputText) return;
@@ -206,13 +208,25 @@ function App() {
               </Box>
 
               <TextField
-                fullWidth
                 multiline
-                rows={20}
+                rows={8}
+                fullWidth
                 variant="outlined"
-                label="Voer hier de klachtenbrief in"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                placeholder="Voer hier de klachtenbrief in"
+                disabled={processing}
+                sx={{ mb: 3 }}
+              />
+              
+              <TextField
+                multiline
+                rows={3}
+                fullWidth
+                variant="outlined"
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                placeholder="Aanvullende informatie (bijv.: We zijn gesloten op Kerst)"
                 disabled={processing}
                 sx={{ mb: 3 }}
               />

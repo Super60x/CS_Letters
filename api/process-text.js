@@ -26,7 +26,7 @@ const OPENAI_PROMPTS = {
         base: "Je bent een professionele klantenservice medewerker die expert is in het behandelen van klachtenbrieven in het Nederlands. " +
              "Je communiceert altijd beleefd, empathisch en oplossingsgericht. " +
              "Je gebruikt een professionele maar toegankelijke schrijfstijl.",
-        rewrite: (text) => 
+        rewrite: (text, additionalInfo) => 
             `Herschrijf deze klachtenbrief of bericht professioneel en duidelijk. Instructies:
              - Behoud de kernboodschap en belangrijke feiten.
              - Verbeter de toon naar professioneel en respectvol.
@@ -40,10 +40,11 @@ const OPENAI_PROMPTS = {
              - Maak de tekst beknopt maar volledig.
              - Geen informatie uitvinden. Als de benodigde informatie ontbreekt, plaats dan [xx] voor de gegevens die door de gebruiker moeten worden aangevuld.
              - Eindig altijd de brief met: "Met Vriendelijke Groeten."
+             ${additionalInfo ? `\n\nAanvullende informatie om rekening mee te houden:\n${additionalInfo}` : ''}
              
              De brief:
              ${text}`,
-        response: (text) => 
+        response: (text, additionalInfo) => 
             `Schrijf een professioneel antwoord op deze klachtenbrief van een klant. Instructies:
              - Begin met het tonen van begrip voor de situatie en erken de bezorgdheid van de klant.
              - Behandel elk genoemd punt serieus, zelfverzekerd en professioneel.
@@ -55,6 +56,7 @@ const OPENAI_PROMPTS = {
              - Maak de tekst beknopt maar volledig.
              - Geen informatie uitvinden. Als de benodigde informatie ontbreekt, plaats dan [xx] voor de gegevens die door de gebruiker moeten worden aangevuld.
              - Eindig altijd de brief met: "Met Vriendelijke Groeten."
+             ${additionalInfo ? `\n\nAanvullende informatie om rekening mee te houden:\n${additionalInfo}` : ''}
              
              De brief:
              ${text}`
@@ -63,7 +65,7 @@ const OPENAI_PROMPTS = {
 
 // Input validation middleware
 const validateTextInput = (req, res, next) => {
-    const { text, type } = req.body;
+    const { text, type, additionalInfo } = req.body;
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         return res.status(400).json({ 
@@ -121,10 +123,10 @@ app.post('/api/process-text', validateTextInput, async (req, res) => {
         }
         console.log('Received request:', req.body);
         
-        const { text, type } = req.body;
+        const { text, type, additionalInfo } = req.body;
         const prompt = type === 'rewrite' ? 
-            OPENAI_PROMPTS.system.rewrite(text) : 
-            OPENAI_PROMPTS.system.response(text);
+            OPENAI_PROMPTS.system.rewrite(text, additionalInfo) : 
+            OPENAI_PROMPTS.system.response(text, additionalInfo);
 
         const response = await openaiAxios.post('/chat/completions', {
             model: "gpt-4",

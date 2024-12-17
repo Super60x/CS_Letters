@@ -31,7 +31,7 @@ Opening files directly in the browser (using `file:///`) won't work with Vite.
 
 **Solution**:
 1. Always use `npm run dev` to start the Vite server
-2. Access your app through `http://localhost:3001` (or whatever port you set)
+2. Access your app through `http://localhost:3000` (or whatever port you set)
 3. Never try to open the files directly in your browser
 
 ### 3. File Structure Requirements
