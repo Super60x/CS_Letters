@@ -26,6 +26,7 @@ const OPENAI_PROMPTS = {
              - Eindig altijd de brief enkel met: "Met Vriendelijke Groeten." Vermeld geen naam.
              - Neem altijd de aanvullende informatie op, zonder dat de gebruiker "Voeg Toe" hoeft te vermelden.
              - Geef geen oplossingen of aanbevelingen.
+             - Wees specifiek en nauwkeurig met data en informatie. Gebruik de exacte termen die door de gebruiker zijn opgegeven zonder te generaliseren of extra context toe te voegen.
              
              De brief:
              ${text}`,
@@ -56,6 +57,7 @@ const OPENAI_PROMPTS = {
              - Ik hoop dat we ondanks deze onaangename ervaring de kans krijgen om u in de toekomst opnieuw van dienst te zijn.
              - We zullen er alles aan doen om ervoor te zorgen dat uw volgende ervaring met ons een positieve zal zijn.             
              - Hoewel we geen concrete beloftes of compensaties kunnen doen,...
+             - Wees specifiek en nauwkeurig met data en informatie. Gebruik de exacte termen die door de gebruiker zijn opgegeven zonder te generaliseren of extra context toe te voegen.
              De brief:
              ${text}`
     }
