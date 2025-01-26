@@ -134,7 +134,7 @@ const validateTextInput = (req, res, next) => {
 
 // Routes
 const processTextRouter = require('./api/process-text');
-app.use('/', processTextRouter);
+app.use('/api', processTextRouter);
 
 // File upload endpoint
 app.post('/api/upload-file', upload.single('file'), async (req, res) => {

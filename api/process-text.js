@@ -4,11 +4,12 @@ const cors = require('cors');
 require('dotenv').config();
 const OPENAI_PROMPTS = require('../config/prompts');
 
-// Initialize express
-const app = express();
+// Initialize router instead of app
+const router = express.Router();
 
 // Middleware to parse JSON bodies
-app.use(express.json());
+router.use(express.json());
+router.use(cors());
 
 // Input validation middleware
 const validateTextInput = (req, res, next) => {
@@ -97,7 +98,7 @@ const makeOpenAIRequest = async (payload, maxRetries = 2) => {
 };
 
 // Process text endpoint
-app.post('/api/process-text', validateTextInput, validateOpenAIKey, async (req, res) => {
+router.post('/process-text', validateTextInput, validateOpenAIKey, async (req, res) => {
     try {
         const { text, type, additionalInfo } = req.body;
         console.log('Processing request:', { type, textLength: text.length });
@@ -157,4 +158,4 @@ app.post('/api/process-text', validateTextInput, validateOpenAIKey, async (req, 
     }
 });
 
-module.exports = app;
+module.exports = router;
