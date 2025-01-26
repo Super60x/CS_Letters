@@ -24,9 +24,11 @@ import axios from 'axios';
 import './App.css';
 
 // API URL configuration
-const API_URL = ''; // Empty string for same-origin requests
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? '' // Empty for production since we use relative paths with Vercel
+  : 'http://localhost:3001'; // For local development
 
-console.log('Using relative API paths'); // Debug logging
+console.log('API URL:', API_URL, 'Environment:', process.env.NODE_ENV);
 
 const theme = createTheme({
   palette: {
