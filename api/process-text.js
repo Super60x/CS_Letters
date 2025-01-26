@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+require('dotenv').config();
 const OPENAI_PROMPTS = require('../config/prompts');
 
 // Initialize express
@@ -39,44 +40,73 @@ const validateTextInput = (req, res, next) => {
 
 // Validate OpenAI API key middleware
 const validateOpenAIKey = (req, res, next) => {
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey || apiKey.trim() === '') {
         console.error('OpenAI API key is not configured');
         return res.status(500).json({
             success: false,
-            error: 'OpenAI API key is not configured. Please check server configuration.'
+            error: 'OpenAI API key is niet geconfigureerd. Neem contact op met de beheerder.'
         });
     }
     next();
 };
 
-// Configure OpenAI API
-const openaiAxios = axios.create({
-    baseURL: 'https://api.openai.com/v1',
-    headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+// Configure OpenAI API with timeout
+const getOpenAIAxios = () => {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey || apiKey.trim() === '') {
+        throw new Error('OpenAI API key is not configured');
     }
-});
+    
+    return axios.create({
+        baseURL: 'https://api.openai.com/v1',
+        headers: {
+            'Authorization': `Bearer ${apiKey.trim()}`,
+            'Content-Type': 'application/json'
+        },
+        timeout: 30000 // 30 second timeout
+    });
+};
+
+// Retry logic for OpenAI requests
+const makeOpenAIRequest = async (payload, maxRetries = 2) => {
+    const openaiAxios = getOpenAIAxios();
+    
+    for (let i = 0; i <= maxRetries; i++) {
+        try {
+            return await openaiAxios.post('/chat/completions', payload);
+        } catch (error) {
+            console.error(`Attempt ${i + 1} failed:`, error.message);
+            
+            if (error.response?.status === 401 || error.response?.data?.error?.type === 'invalid_request_error') {
+                throw new Error('Invalid API key or authentication error');
+            }
+            
+            if (i === maxRetries) throw error;
+            
+            // Only retry on timeout or rate limit
+            if (error.code === 'ECONNABORTED' || error.response?.status === 429) {
+                const delay = Math.pow(2, i) * 1000;
+                console.log(`Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
+            }
+            throw error;
+        }
+    }
+};
 
 // Process text endpoint
-app.post('/api/process-text', validateTextInput, async (req, res) => {
+app.post('/api/process-text', validateTextInput, validateOpenAIKey, async (req, res) => {
     try {
-        if (!openaiAxios) {
-            return res.status(503).json({
-                error: 'Service Unavailable',
-                message: 'OpenAI API is not configured. Please set OPENAI_API_KEY environment variable.'
-            });
-        }
-        console.log('Received request:', req.body);
-        
         const { text, type, additionalInfo } = req.body;
+        console.log('Processing request:', { type, textLength: text.length });
+        
         const prompt = type === 'rewrite' ? 
             OPENAI_PROMPTS.system.rewrite(text, additionalInfo || '') : 
             OPENAI_PROMPTS.system.response(text, additionalInfo || '');
 
-        console.log('Using prompt with additional info:', additionalInfo || 'No additional info provided');
-
-        const response = await openaiAxios.post('/chat/completions', {
+        const payload = {
             model: "gpt-4",
             messages: [
                 { role: "system", content: OPENAI_PROMPTS.system.base },
@@ -84,28 +114,47 @@ app.post('/api/process-text', validateTextInput, async (req, res) => {
             ],
             temperature: 0.7,
             max_tokens: 2000
-        });
+        };
 
-        console.log('OpenAI response received');
+        const response = await makeOpenAIRequest(payload);
         
-        if (response.data.choices && response.data.choices[0]) {
-            const processedText = response.data.choices[0].message.content;
-            console.log('Processed text:', processedText.substring(0, 100) + '...');
+        if (response.data.choices?.[0]?.message?.content) {
             res.json({ 
                 success: true, 
-                processedText 
+                processedText: response.data.choices[0].message.content 
             });
         } else {
-            throw new Error('Invalid response from OpenAI API');
+            throw new Error('Invalid response format from OpenAI');
         }
     } catch (error) {
-        console.error('Error processing text:', error);
+        console.error('Error processing text:', error.message);
+        
+        if (error.message === 'Invalid API key or authentication error') {
+            return res.status(401).json({
+                success: false,
+                error: 'Authenticatiefout. Neem contact op met de beheerder.'
+            });
+        }
+        
+        if (error.code === 'ECONNABORTED') {
+            return res.status(504).json({
+                success: false,
+                error: 'De verwerking duurde te lang. Probeer het opnieuw met een kortere tekst.'
+            });
+        }
+        
+        if (error.response?.status === 429) {
+            return res.status(429).json({
+                success: false,
+                error: 'Te veel verzoeken. Wacht even en probeer het opnieuw.'
+            });
+        }
+
         res.status(500).json({
             success: false,
-            error: error.response?.data?.error || error.message || 'Error processing text'
+            error: 'Er is een fout opgetreden bij het verwerken van uw tekst. Probeer het later opnieuw.'
         });
     }
 });
 
-// Export the Express API
 module.exports = app;
