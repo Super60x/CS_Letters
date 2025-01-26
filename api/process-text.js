@@ -42,11 +42,18 @@ const validateTextInput = (req, res, next) => {
 // Validate OpenAI API key middleware
 const validateOpenAIKey = (req, res, next) => {
     const apiKey = process.env.OPENAI_API_KEY;
+    console.log('API Key check:', {
+        exists: !!apiKey,
+        length: apiKey?.length || 0,
+        envVars: Object.keys(process.env).filter(key => key.includes('OPENAI'))
+    });
+    
     if (!apiKey || apiKey.trim() === '') {
-        console.error('OpenAI API key is not configured');
+        console.error('OpenAI API key is missing or empty');
         return res.status(500).json({
             success: false,
-            error: 'OpenAI API key is niet geconfigureerd. Neem contact op met de beheerder.'
+            error: 'OpenAI API key is niet geconfigureerd. Neem contact op met de beheerder.',
+            debug: process.env.NODE_ENV === 'development' ? 'Missing API key' : undefined
         });
     }
     next();
@@ -59,7 +66,7 @@ const getOpenAIAxios = () => {
         throw new Error('OpenAI API key is not configured');
     }
     
-    return axios.create({
+    const client = axios.create({
         baseURL: 'https://api.openai.com/v1',
         headers: {
             'Authorization': `Bearer ${apiKey.trim()}`,
@@ -67,6 +74,15 @@ const getOpenAIAxios = () => {
         },
         timeout: 30000 // 30 second timeout
     });
+
+    // Log the headers for debugging (excluding the full API key)
+    console.log('OpenAI client headers:', {
+        hasAuth: !!client.defaults.headers['Authorization'],
+        authPrefix: client.defaults.headers['Authorization']?.substring(0, 20) + '...',
+        contentType: client.defaults.headers['Content-Type']
+    });
+
+    return client;
 };
 
 // Retry logic for OpenAI requests

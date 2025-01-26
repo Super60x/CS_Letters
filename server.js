@@ -1,4 +1,13 @@
+// Load environment variables first
 require('dotenv').config();
+
+// Log environment status
+console.log('Environment check:', {
+    nodeEnv: process.env.NODE_ENV,
+    hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+    envVars: Object.keys(process.env).filter(key => key.includes('OPENAI'))
+});
+
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');

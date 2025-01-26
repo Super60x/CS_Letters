@@ -24,9 +24,15 @@ import axios from 'axios';
 import './App.css';
 
 // API URL configuration
-const API_URL = ''; // Empty string for same-origin requests
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? window.location.origin  // Use the same domain in production
+  : 'http://localhost:3001'; // Use localhost in development
 
-console.log('Using relative API paths'); // Debug logging
+console.log('API Configuration:', {
+  env: process.env.NODE_ENV,
+  apiUrl: API_URL,
+  origin: window.location.origin
+});
 
 const theme = createTheme({
   palette: {
@@ -89,7 +95,7 @@ function App() {
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
-      setError('Voer eerst een tekst in.');
+      setError('Voer alstublieft een tekst in om te verwerken.');
       setSnackbarOpen(true);
       return;
     }
@@ -105,22 +111,29 @@ function App() {
         type,
         additionalInfo: additionalInfo.trim()
       });
-      
-      console.log('Response received:', response.data);
-      
-      if (response.data.success && response.data.processedText) {
+
+      if (response.data.success) {
         setOutputText(response.data.processedText);
-        setSuccess('Tekst succesvol verwerkt!');
-        setSnackbarOpen(true);
       } else {
-        throw new Error(response.data.error || 'Geen verwerkte tekst ontvangen van de server.');
+        throw new Error(response.data.error || 'Er is een fout opgetreden bij het verwerken van de tekst.');
       }
-    } catch (err) {
-      console.error('Error details:', err);
-      const errorMessage = err.response?.data?.error || err.message || 'Er is een fout opgetreden bij het verwerken van de tekst.';
-      console.error('Error message:', errorMessage);
-      setError(errorMessage);
-      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        setError('Authenticatiefout. Neem contact op met de beheerder.');
+      } else if (error.response?.status === 429) {
+        setError('Te veel verzoeken. Wacht even en probeer het opnieuw.');
+      } else if (error.response?.status === 504) {
+        setError('De verwerking duurde te lang. Probeer het opnieuw met een kortere tekst.');
+      } else {
+        setError(error.response?.data?.error || 'Er is een fout opgetreden bij het verwerken van de tekst.');
+      }
     } finally {
       setProcessing(false);
     }
