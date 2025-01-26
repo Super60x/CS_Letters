@@ -11,23 +11,13 @@
   },
   "routes": [
     {
-      "src": "/api/process-text",
-      "methods": ["POST"],
-      "dest": "/api/process-text.js",
+      "src": "/api/(.*)",
+      "methods": ["POST", "GET", "OPTIONS"],
+      "dest": "/api/$1.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
-      }
-    },
-    {
-      "src": "/api/upload-file",
-      "methods": ["POST"],
-      "dest": "/api/upload-file.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
     },
     { "src": "/(.*)", "dest": "/" }

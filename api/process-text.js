@@ -100,6 +100,11 @@ const makeOpenAIRequest = async (payload, maxRetries = 2) => {
 // Process text endpoint
 router.post('/process-text', validateTextInput, validateOpenAIKey, async (req, res) => {
     try {
+        console.log('Environment check:', {
+            hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+            nodeEnv: process.env.NODE_ENV
+        });
+
         const { text, type, additionalInfo } = req.body;
         console.log('Processing request:', { type, textLength: text.length });
         
@@ -117,6 +122,11 @@ router.post('/process-text', validateTextInput, validateOpenAIKey, async (req, r
             max_tokens: 2000
         };
 
+        console.log('Making OpenAI request with payload:', {
+            model: payload.model,
+            messageCount: payload.messages.length
+        });
+
         const response = await makeOpenAIRequest(payload);
         
         if (response.data.choices?.[0]?.message?.content) {
@@ -128,7 +138,12 @@ router.post('/process-text', validateTextInput, validateOpenAIKey, async (req, r
             throw new Error('Invalid response format from OpenAI');
         }
     } catch (error) {
-        console.error('Error processing text:', error.message);
+        console.error('Detailed error:', {
+            message: error.message,
+            code: error.code,
+            response: error.response?.data,
+            stack: error.stack
+        });
         
         if (error.message === 'Invalid API key or authentication error') {
             return res.status(401).json({
@@ -153,7 +168,8 @@ router.post('/process-text', validateTextInput, validateOpenAIKey, async (req, r
 
         res.status(500).json({
             success: false,
-            error: 'Er is een fout opgetreden bij het verwerken van uw tekst. Probeer het later opnieuw.'
+            error: 'Er is een fout opgetreden bij het verwerken van uw tekst. Probeer het later opnieuw.',
+            debug: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
